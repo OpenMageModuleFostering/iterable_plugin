@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
     <name>Iterable_Plugin</name>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <stability>stable</stability>
     <license uri="http://opensource.org/licenses/OSL-3.0">Open Software License (OSL) </license>
     <channel>community</channel>
@@ -15,11 +15,11 @@ drip marketing campaigns.&#xD;
 To install, click the 'Install Now' button above and paste the link into your Magento Connect Manager. You will then see an Iterable section in your Magento Admin view. In the 'Advanced' section, select the events you would like to be sent to Iterable. Then, in the API section, enter your Magento API key from Iterable (located in the API Config section on the left side menu).&#xD;
 &#xD;
 Questions? Comments? Feel free to contact us at support@iterable.com. Also, for more info or a free demo, please visit us at Iterable.com.</description>
-    <notes>Add support for PHP 5.3</notes>
+    <notes>Handle more order information such as billing, shipping, and payment.</notes>
     <authors><author><name>Ilya Brin</name><user>Iterable</user><email>ilya@iterable.com</email></author></authors>
-    <date>2014-08-11</date>
-    <time>21:32:24</time>
-    <contents><target name="magecommunity"><dir name="Iterable"><dir name="TrackOrderPlaced"><dir name="Helper"><file name="Data.php" hash="f890759b1875bfde311cf40ed01aae67"/></dir><dir name="Model"><file name="Observer.php" hash="07fc03a2086562b26c751bd1146f07ba"/><file name="TrackingEventTypes.php" hash="f0592c7a7506a0e606275dd422a57bb8"/></dir><dir name="etc"><file name="config.xml" hash="d9e0eae78379f3c6238d70023b110276"/><file name="system.xml" hash="e4ad1b58022f8969e64dff80971c4cfb"/></dir></dir></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><dir name="iterable"><file name="common.xml" hash="d90fbb22fb34fa29deb6b0e131f9e767"/></dir></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Iterable_TrackOrderPlaced.xml" hash="0d4506dadf95eecb54e215ed03b2c6a7"/></dir></target><target name="mageskin"><dir name="adminhtml"><dir name="base"><dir name="default"><dir name="iterable"><dir name="images"><file name="section_logo.png" hash="fe5090ba955a890c1efe2c09cb260342"/></dir><file name="iterable.css" hash="4d928c5a4ed76d62e246a57ee868ec23"/><file name="iterable.css~" hash="2c3ee0498f159bc59bee37cd3c508f27"/></dir></dir></dir></dir></target></contents>
+    <date>2014-10-02</date>
+    <time>02:11:46</time>
+    <contents><target name="magecommunity"><dir name="Iterable"><dir name="TrackOrderPlaced"><dir name="Helper"><file name="Data.php" hash="a6029c49149215655477fac0442b365f"/></dir><dir name="Model"><dir name="Email"><file name="Template.php" hash="225b9fb6b5eac3b506813bae86e1f005"/></dir><file name="Observer.php" hash="9beac31883fd63bb653e083ad9befb13"/><file name="TrackingEventTypes.php" hash="b81614a3a0fcd67aee43a29093044261"/></dir><dir name="etc"><file name="config.xml" hash="fcfea5dfdb4a375516c4d5b4d8ab6684"/><file name="system.xml" hash="32d1f49eb03cd585b7c33a894fe4de15"/></dir><dir name=".idea"><file name="TrackOrderPlaced.iml" hash="64a676a732fd4b7f408cdd46b49aaa24"/><file name="compiler.xml" hash="7e7efa3e3d6514a0ff290e4dfce3cbe9"/><dir name="copyright"><file name="profiles_settings.xml" hash="b1e0b181e080c28b1d116582290e6e97"/></dir><file name="encodings.xml" hash="f1c5edfa5b1a67aabcb9e41674afa252"/><file name="misc.xml" hash="a09f56c13a544171f953e7723e0d4439"/><file name="modules.xml" hash="c93cdff764916047e398fcf5b105a3ed"/><dir name="scopes"><file name="scope_settings.xml" hash="3d0b1957d39aa5636904788c54e654cf"/></dir><file name="vcs.xml" hash="1b4ab30910ae53c73594cd0e3db9840b"/><file name="workspace.xml" hash="6b623904b5b85b0966e42a14d9711d8d"/><file name=".name" hash="8b29e935aaea69d5d9c071be993c4610"/></dir></dir></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><dir name="iterable"><file name="common.xml" hash="d90fbb22fb34fa29deb6b0e131f9e767"/></dir></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Iterable_TrackOrderPlaced.xml" hash="0d4506dadf95eecb54e215ed03b2c6a7"/></dir></target><target name="mageskin"><dir name="adminhtml"><dir name="base"><dir name="default"><dir name="iterable"><dir name="images"><file name="section_logo.png" hash="fe5090ba955a890c1efe2c09cb260342"/></dir><file name="iterable.css" hash="4d928c5a4ed76d62e246a57ee868ec23"/></dir></dir></dir></dir></target></contents>
     <compatible/>
     <dependencies><required><php><min>5.3.1</min><max>6.0.0</max></php></required></dependencies>
 </package>

@@ -8,6 +8,7 @@ class Iterable_TrackOrderPlaced_Model_TrackingEventTypes
     const EVENT_TYPE_CART_UPDATED = 'cartUpdated';
     const EVENT_TYPE_NEWSLETTER_SUBSCRIBE = 'newsletterSubscribe';
     const EVENT_TYPE_NEWSLETTER_UNSUBSCRIBE = 'newsletterUnsubscribe';
+    const EVENT_TYPE_TRIGGER_EMAIL = 'triggerEmail';
 
     /** @const */
     private static $eventTypes = array(
@@ -15,7 +16,8 @@ class Iterable_TrackOrderPlaced_Model_TrackingEventTypes
         self::EVENT_TYPE_USER => 'User',
         self::EVENT_TYPE_CART_UPDATED => 'Cart Updated',
         self::EVENT_TYPE_NEWSLETTER_SUBSCRIBE => 'Newsletter Subscribe',
-        self::EVENT_TYPE_NEWSLETTER_UNSUBSCRIBE => 'Newsletter Unsubscribe'
+        self::EVENT_TYPE_NEWSLETTER_UNSUBSCRIBE => 'Newsletter Unsubscribe',
+        self::EVENT_TYPE_TRIGGER_EMAIL => 'Trigger Email'
     );
 
     public function toOptionArray()

@@ -201,6 +201,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
     public function orderPlaced(Varien_Event_Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $payment = $order->getPayment();
         $orderItems = $this->getItemsFromQuote($order, FALSE);
         $items = array_values($orderItems);
         $email = $order->getCustomerEmail();
@@ -217,7 +218,17 @@ class Iterable_TrackOrderPlaced_Model_Observer
             'subtotal' => $subtotal,
             'grandTotal' => $order->getGrandTotal(),
             'taxAmount' => $order->getTaxAmount(),
-            'shippingAmount' => $order->getShippingAmount()
+            'shippingAmount' => $order->getShippingAmount(),
+            'incrementId' => $order->increment_id,
+            'billingAddress' => $order->getBillingAddress()->getData(),
+            'billingAddressHtml' => $order->getBillingAddress()->format('html'),
+            'shippingAddress' => $order->getShippingAddress()->getData(),
+            'shippingAddressHtml' => $order->getShippingAddress()->format('html'),
+            'shippingDescription' => $order->getShippingDescription(),
+            'emailCustomerNote' => $order->getEmailCustomerNote(),
+            'statusLabel' => $order->getStatusLabel(),
+            'storeFrontendName' => $order->getStore()->getFrontendName(),
+            'payment' => $payment->getData()
         );
         $customerDataFields = array(
             'firstName' => $order->getCustomerFirstname(),

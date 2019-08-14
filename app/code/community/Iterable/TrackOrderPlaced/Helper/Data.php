@@ -5,6 +5,55 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
     const XML_PATH_ITERABLE_API_KEY = 'api_options/api_key_options/api_key';
     const XML_PATH_ENABLED_EVENTS = 'advanced_options/tracking_options/enabled_events';
 
+    /** transactional email xml config */
+
+    // account created
+    const XML_PATH_TRANSACTIONAL_ACCOUNT_CREATED_ENABLED = 'transactional_email_options/account_created/is_enabled';
+    const XML_PATH_TRANSACTIONAL_ACCOUNT_CREATED_CAMPAIGN_ID = 'transactional_email_options/account_created/campaign_id';
+    const XML_PATH_TRANSACTIONAL_FORGOT_PASSWORD_ENABLED = 'transactional_email_options/forgot_password/is_enabled';
+    const XML_PATH_TRANSACTIONAL_FORGOT_PASSWORD_CAMPAIGN_ID = 'transactional_email_options/forgot_password/campaign_id';
+    const XML_PATH_TRANSACTIONAL_NEWSLETTER_SUBSCRIBE_ENABLED = 'transactional_email_options/newsletter_subscribe/is_enabled';
+    const XML_PATH_TRANSACTIONAL_NEWSLETTER_SUBSCRIBE_CAMPAIGN_ID = 'transactional_email_options/newsletter_subscribe/campaign_id';
+    const XML_PATH_TRANSACTIONAL_NEWSLETTER_UNSUBSCRIBE_ENABLED = 'transactional_email_options/newsletter_unsubscribe/is_enabled';
+    const XML_PATH_TRANSACTIONAL_NEWSLETTER_UNSUBSCRIBE_CAMPAIGN_ID = 'transactional_email_options/newsletter_unsubscribe/campaign_id';
+
+    // disabled section
+    const XML_PATH_TRANSACTIONAL_ORDER_CONFIRM_DISABLED = 'transactional_email_options/order_confirm/is_disabled';
+
+    /** end transactional email xml config */
+
+    /** @var array Map of templateName -> (enabled, campaignId) */
+    private static $EMAIL_TEMPLATE_NAMES_TO_TRANSACTIONAL_EMAIL_OPTIONS = array(
+        'customer_create_account_email_template' => array(
+            self::XML_PATH_TRANSACTIONAL_ACCOUNT_CREATED_ENABLED,
+            self::XML_PATH_TRANSACTIONAL_ACCOUNT_CREATED_CAMPAIGN_ID
+        ),
+        'customer_password_forgot_email_template' => array(
+            self::XML_PATH_TRANSACTIONAL_FORGOT_PASSWORD_ENABLED,
+            self::XML_PATH_TRANSACTIONAL_FORGOT_PASSWORD_CAMPAIGN_ID
+        ),
+        'newsletter_subscription_success_email_template' => array(
+            self::XML_PATH_TRANSACTIONAL_NEWSLETTER_SUBSCRIBE_ENABLED,
+            self::XML_PATH_TRANSACTIONAL_NEWSLETTER_SUBSCRIBE_CAMPAIGN_ID
+        ),
+        'newsletter_subscription_un_email_template' => array(
+            self::XML_PATH_TRANSACTIONAL_NEWSLETTER_UNSUBSCRIBE_ENABLED,
+            self::XML_PATH_TRANSACTIONAL_NEWSLETTER_UNSUBSCRIBE_CAMPAIGN_ID
+        )
+    );
+
+    public static function getTransactionalEmailConfig() {
+        return self::$EMAIL_TEMPLATE_NAMES_TO_TRANSACTIONAL_EMAIL_OPTIONS;
+    }
+
+    private static $EMAIL_TEMPLATE_NAMES_TO_DISABLED_OPTIONS = array(
+        'sales_email_order_template' => self::XML_PATH_TRANSACTIONAL_ORDER_CONFIRM_DISABLED
+    );
+
+    public static function getDefaultEmailDisabledConfig() {
+        return self::$EMAIL_TEMPLATE_NAMES_TO_DISABLED_OPTIONS;
+    }
+
     private function getDecodedMagentoApiToken() {
         $magentoApiKey = Mage::getStoreConfig(self::XML_PATH_ITERABLE_API_KEY);
         return json_decode(base64_decode($magentoApiKey));
@@ -38,6 +87,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         $eventsToTrack = Mage::getStoreConfig(self::XML_PATH_ENABLED_EVENTS);
         $eventsToTrack = explode(",", $eventsToTrack);
         if (!in_array($event, $eventsToTrack)) {
+            Mage::log("Iterable: tracking disabled for event " . $event);
             // TODO - maybe run this before gathering data about the cart
             return;
         }
@@ -46,6 +96,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             return;
         }
         $url = "https://api.iterable.com/{$endpoint}?api_key={$apiKey}";
+//        $url = "http://localhost:9000{$endpoint}?api_key={$apiKey}";
         try {
             $client = new Zend_Http_Client($url);
         } catch(Exception $e) {
@@ -62,8 +113,10 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             if ($status != 200) {
                 Mage::log("Iterable Tracker: Unable to track event at {$endpoint} with params {$json}; got status {$status} with body {$response->getBody()}");
             }
+            return $response;
         } catch(Exception $e) {
             Mage::log("Warning: unable to send event at {$endpoint} with params {$json} to Iterable ({$e->getMessage()})");
+            return null;
         }
     }
 
@@ -84,7 +137,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         );
         $this->setCurrentIp($dataFields);
         $params['dataFields'] = $dataFields;
-        $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER, $endpoint, $params);
     }
     
     public function subscribeEmailToList($email, $listId, $dataFields=array(), $resubscribe=False) {
@@ -101,7 +154,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if (!empty($dataFields)) {
             $params['subscribers'][0]['dataFields'] = $dataFields;
         }
-        $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_NEWSLETTER_SUBSCRIBE, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_NEWSLETTER_SUBSCRIBE, $endpoint, $params);
     }
     
     public function unsubscribeEmailFromList($email, $listId) {
@@ -115,10 +168,9 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             )
             // 'campaignId' => iterableCid cookie?
         );
-        $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_NEWSLETTER_UNSUBSCRIBE, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_NEWSLETTER_UNSUBSCRIBE, $endpoint, $params);
     }
 
-    /*
     public function track($event, $email, $dataFields=array()) {
         $endpoint = '/api/events/track';
         $params = array(
@@ -128,9 +180,8 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if (!empty($dataFields)) {
             $params['dataFields'] = $dataFields;
         }
-        $this->callIterableApi($event, $endpoint, $params);
+        return $this->callIterableApi($event, $endpoint, $params);
     }
-    */
 
     public function updateCart($email, $items, $dataFields=array()) {
         $endpoint = '/api/commerce/updateCart';
@@ -143,7 +194,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if (!empty($dataFields)) {
             $params['user']['dataFields'] = $dataFields;
         }
-        $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_CART_UPDATED, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_CART_UPDATED, $endpoint, $params);
     }
 
     public function trackPurchase($email, $items, $total, $campaignId=NULL, $templateId=NULL, $dataFields=array(), $customerDataFields=array()) {
@@ -167,7 +218,18 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if ($templateId != NULL) {
             $params['templateId'] = $templateId;
         }
-        $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_ORDER, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_ORDER, $endpoint, $params);
     }
 
+    public function triggerCampaign($email, $campaignId, $dataFields=NULL) {
+        $endpoint = '/api/email/target';
+        $params = array(
+            'recipientEmail' => $email,
+            'campaignId' => $campaignId
+        );
+        if (! is_null($dataFields)) {
+            $params['dataFields'] = $dataFields;
+        }
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_TRIGGER_EMAIL, $endpoint, $params);
+    }
 }
