@@ -89,11 +89,11 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if (!in_array($event, $eventsToTrack)) {
             Mage::log("Iterable: tracking disabled for event " . $event);
             // TODO - maybe run this before gathering data about the cart
-            return null;
+            return;
         }
         $apiKey = $this->getIterableApiToken();
         if ($apiKey == NULL) {
-            return null;
+            return;
         }
         $url = "https://api.iterable.com/{$endpoint}?api_key={$apiKey}";
 //        $url = "http://localhost:9000{$endpoint}?api_key={$apiKey}";
@@ -101,7 +101,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             $client = new Zend_Http_Client($url);
         } catch(Exception $e) {
             Mage::log("Warning: unable to create http client with url {$url} ({$e->getMessage()})");
-            return null;
+            return;
         }
         $client->setMethod(Zend_Http_Client::POST);
         // $client->setHeaders('Content-Type', 'application/json'); 
@@ -130,15 +130,14 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         }
     }
 
-    public function updateUser($email, $dataFields=array(), $eventNameHint=null) {
+    public function updateUser($email, $dataFields=array()) {
         $endpoint = '/api/users/update';
         $params = array(
             'email' => $email
         );
         $this->setCurrentIp($dataFields);
         $params['dataFields'] = $dataFields;
-        $eventName = isset($eventNameHint) ? $eventNameHint : Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER;
-        return $this->callIterableApi($eventName, $endpoint, $params);
+        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER, $endpoint, $params);
     }
     
     public function subscribeEmailToList($email, $listId, $dataFields=array(), $resubscribe=False) {
@@ -232,21 +231,5 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             $params['dataFields'] = $dataFields;
         }
         return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_TRIGGER_EMAIL, $endpoint, $params);
-    }
-
-    public function trackShipment($email, $shipment) {
-        return $this->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_SHIPMENT, $email, $shipment);
-    }
-
-    public function trackReview($email, $review)
-    {
-        return $this->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_REVIEW, $email, $review);
-    }
-
-    public function trackWishlist($email, $wishlist)
-    {
-        return $this->updateUser($email, array(
-            'wishlist' => $wishlist
-        ), Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_WISHLIST_ADD_PRODUCT);
     }
 }
