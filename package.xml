@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+    <name>Iterable_Plugin</name>
+    <version>1.1.0</version>
+    <stability>stable</stability>
+    <license uri="http://opensource.org/licenses/OSL-3.0">Open Software License (OSL) </license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Automatically tie together your commerce platform and email marketing with this plugin from Iterable!</summary>
+    <description>After installing this plugin, you will be able to immediately view and take action in the Iterable platform whenever your Magento users make important decisions, such as signing up or making a purchase! Easily integrate and set up abandoned cart emails, handle newsletter subscriptions, or reach out to customers whenever they make a purchase. </description>
+    <notes>Added feature to choose which events get pushed to Iterable.</notes>
+    <authors><author><name>Ilya Brin</name><user>Iterable</user><email>ilya@iterable.com</email></author></authors>
+    <date>2014-04-30</date>
+    <time>03:23:26</time>
+    <contents><target name="magecommunity"><dir name="Iterable"><dir name="TrackOrderPlaced"><dir name="Helper"><file name="Data.php" hash="661ec5234fee78ffeae3d77011a2dde1"/></dir><dir name="Model"><file name="Observer.php" hash="d110ed71f94f2bff983e88ca1551ae2d"/><file name="TrackingEventTypes.php" hash="f0592c7a7506a0e606275dd422a57bb8"/></dir><dir name="etc"><file name="config.xml" hash="d9e0eae78379f3c6238d70023b110276"/><file name="system.xml" hash="e4ad1b58022f8969e64dff80971c4cfb"/></dir></dir></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><dir name="iterable"><file name="common.xml" hash="d90fbb22fb34fa29deb6b0e131f9e767"/></dir></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Iterable_TrackOrderPlaced.xml" hash="0d4506dadf95eecb54e215ed03b2c6a7"/></dir></target><target name="mageskin"><dir name="adminhtml"><dir name="base"><dir name="default"><dir name="iterable"><dir name="images"><file name="section_logo.png" hash="fe5090ba955a890c1efe2c09cb260342"/></dir><file name="iterable.css" hash="4d928c5a4ed76d62e246a57ee868ec23"/><file name="iterable.css~" hash="2c3ee0498f159bc59bee37cd3c508f27"/></dir></dir></dir></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.4.1</min><max>6.0.0</max></php></required></dependencies>
+</package>

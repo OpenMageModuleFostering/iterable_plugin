@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/Iterable_Plugin",
+    "type": "magento-module",
+    "license": "Open-Software-License-(OSL)-",
+    "homepage": "",
+    "description": "Automatically tie together your commerce platform and email marketing with this plugin from Iterable!",
+    "authors": [
+    {
+        "name": "Ilya Brin",
+        "email": "ilya@iterable.com"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
