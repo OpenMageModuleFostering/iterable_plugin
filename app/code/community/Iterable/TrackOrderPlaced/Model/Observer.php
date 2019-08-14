@@ -450,6 +450,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
     public function shipmentSaveAfter($observer)
     {
         $shipment = $observer->getEvent()->getShipment();
+        $order = $shipment->getOrder();
 
         $trackingData = array();
         $tracks = $shipment->getAllTracks();
@@ -473,8 +474,9 @@ class Iterable_TrackOrderPlaced_Model_Observer
             "comments" => $comments,
             "billingAddress" => $shipment->getBillingAddress()->getData(),
             "shippingAddress" => $shipment->getShippingAddress()->getData(),
-            "shippingDescription" => $shipment->getOrder()->getShippingDescription(),
-            "items" => $items
+            "shippingDescription" => $order->getShippingDescription(),
+            "items" => $items,
+            "incrementId" => $order->increment_id
         );
 
         $email = $shipment->getOrder()->getCustomerEmail();
