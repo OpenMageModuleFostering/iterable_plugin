@@ -3,7 +3,7 @@
     "type": "magento-module",
     "license": "Open-Software-License-(OSL)-",
     "homepage": "",
-    "description": "Automatically tie together your commerce platform and email marketing with this plugin from Iterable!",
+    "description": "The official extension for easily integrating the Iterable all-in-one email optimization solution with your Magento store. ",
     "authors": [
     {
         "name": "Ilya Brin",

@@ -204,24 +204,25 @@ class Iterable_TrackOrderPlaced_Model_Observer
         $orderItems = $this->getItemsFromQuote($order, FALSE);
         $items = array_values($orderItems);
         $email = $order->getCustomerEmail();
-        /*
-        $dataFields = array(
-            'firstName' => $order->getCustomerFirstname(),
-            'lastName' => $order->getCustomerLastname(),
-            'subtotal' => $order->getSubtotal(),
-            'grandTotal' => $order->getGrandTotal(),
-            'taxAmount' => $order->getTaxAmount(),
-            'shippingAmount' => $order->getShippingAmount(),
-            'items' => $items
-        );
-        */
+
         $cookieModel = Mage::getModel('core/cookie');
         // $iterableUid = $cookieModel->get('iterable_uid');
         $campaignId = $cookieModel->get('iterable_cid');
         $campaignId = empty($campaignId) ? NULL: intval($campaignId);
-        // $dataFields["campaignId"] = $iterableCid;
+
+        $subtotal = $order->getSubtotal();
+        $dataFields = array(
+            'subtotal' => $subtotal,
+            'grandTotal' => $order->getGrandTotal(),
+            'taxAmount' => $order->getTaxAmount(),
+            'shippingAmount' => $order->getShippingAmount()
+        );
+        $customerDataFields = array(
+            'firstName' => $order->getCustomerFirstname(),
+            'lastName' => $order->getCustomerLastname()
+        );
         $helper = Mage::helper('trackorderplaced');
-        $helper->trackPurchase($email, $items, $campaignId);
+        $helper->trackPurchase($email, $items, $subtotal, $campaignId, $dataFields, $customerDataFields);
 
         // don't need to clear cart, server does it automatically
     }
@@ -244,8 +245,8 @@ class Iterable_TrackOrderPlaced_Model_Observer
         // set billing address
         $defaultBilling = $customer->getDefaultBillingAddress();
         if ($defaultBilling) { $dataFields['defaultBilling'] = $defaultBilling->getData(); }
-        // unset password/conf
-        $fieldsToUnset = array('password', 'password_hash', 'confirmation');
+        // unset password/conf... unset created_at because that never changes, and it's in a bad format to boot
+        $fieldsToUnset = array('password', 'password_hash', 'confirmation', 'subscriber_confirm_code', 'created_at'); 
         foreach ($fieldsToUnset as $fieldToUnset) {
             if (array_key_exists($fieldToUnset, $dataFields)) {
                 unset($dataFields[$fieldToUnset]);

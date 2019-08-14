@@ -137,16 +137,20 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_CART_UPDATED, $endpoint, $params);
     }
 
-    public function trackPurchase($email, $items, $campaignId=NULL, $dataFields=array()) {
+    public function trackPurchase($email, $items, $total, $campaignId=NULL, $dataFields=array(), $customerDataFields=array()) {
         $endpoint = '/api/commerce/trackPurchase';
         $params = array(
             'user' => array(
                 'email' => $email
             ),
-            'items' => $items
+            'items' => $items,
+            'total' => $total
         );
         if (!empty($dataFields)) {
-            $params['user']['dataFields'] = $dataFields;
+            $params['dataFields'] = $dataFields;
+        }
+        if (!empty($customerDataFields)) {
+            $params['user']['dataFields'] = $customerDataFields;
         }
         if ($campaignId != NULL) {
             $params['campaignId'] = $campaignId;
