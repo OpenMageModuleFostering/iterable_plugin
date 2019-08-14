@@ -80,6 +80,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
         }
         
         $imageUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA).'catalog/product/'.$product->getImage();
+        $thumbnailUrl = Mage::getModel('catalog/product_media_config')->getMediaUrl($product->getThumbnail());
         $categoryNames = array();
         foreach ($this->getCategories($product) as $categoryBreadcrumbs) {
             $categoryNames[] = implode('/', $categoryBreadcrumbs);
@@ -91,6 +92,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
             'categories' => $categoryNames,
             //'itemDescription' => $product->getDescription(), // maybe use short description instead?
             'imageUrl' => $imageUrl,
+            'thumbnailUrl' => $thumbnailUrl,
             'url' => $product->getProductUrl(),
             'quantity' => $quantity,
             'price' => $price == NULL ? 0.0: floatval($price) // TODO - make sure price isn't NULL
@@ -196,11 +198,77 @@ class Iterable_TrackOrderPlaced_Model_Observer
     }
 
     /**
+     * Generates the items html. Copied from Mage_Core_Model_Email_Template_Filter->layoutDirective
+     */
+    private function generateOrderItemsHtml($order)
+    {
+        $params = array(
+            'order' => $order
+        );
+
+        $layout = Mage::getModel('core/layout');
+        $layout->getUpdate()->addHandle('sales_email_order_items');
+        $layout->getUpdate()->load();
+
+        $layout->generateXml();
+        $layout->generateBlocks();
+
+        foreach ($layout->getAllBlocks() as $blockName => $block) {
+            foreach ($params as $k => $v) {
+                $block->setDataUsingMethod($k, $v);
+            }
+        }
+
+        /**
+         * Add output method for first block
+         */
+        $allBlocks = $layout->getAllBlocks();
+        $firstBlock = reset($allBlocks);
+        if ($firstBlock) {
+            $layout->addOutputBlock($firstBlock->getNameInLayout());
+        }
+
+        $layout->setDirectOutput(false);
+
+        return $layout->getOutput();
+    }
+
+    /**
+     * borrowed from Mage_Core_Model_Email_Template
+     */
+    protected function getLogoUrl($store)
+    {
+        $fileName = $store->getConfig(Mage_Core_Model_Email_Template::XML_PATH_DESIGN_EMAIL_LOGO);
+        if ($fileName) {
+            $uploadDir = Mage_Adminhtml_Model_System_Config_Backend_Email_Logo::UPLOAD_DIR;
+            $fullFileName = Mage::getBaseDir('media') . DS . $uploadDir . DS . $fileName;
+            if (file_exists($fullFileName)) {
+                return Mage::getBaseUrl('media') . $uploadDir . '/' . $fileName;
+            }
+        }
+        return Mage::getDesign()->getSkinUrl('images/logo_email.gif');
+    }
+
+    /**
+     * borrowed from Mage_Core_Model_Email_Template
+     */
+    protected function getLogoAlt($store)
+    {
+        $alt = $store->getConfig(Mage_Core_Model_Email_Template::XML_PATH_DESIGN_EMAIL_LOGO_ALT);
+        if ($alt) {
+            return $alt;
+        }
+        return $store->getFrontendName();
+    }
+
+    /**
      * Gets called when an order is placed
      */
     public function orderPlaced(Varien_Event_Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $store = $order->getStore();
+        $payment = $order->getPayment();
         $orderItems = $this->getItemsFromQuote($order, FALSE);
         $items = array_values($orderItems);
         $email = $order->getCustomerEmail();
@@ -217,8 +285,42 @@ class Iterable_TrackOrderPlaced_Model_Observer
             'subtotal' => $subtotal,
             'grandTotal' => $order->getGrandTotal(),
             'taxAmount' => $order->getTaxAmount(),
-            'shippingAmount' => $order->getShippingAmount()
+            'shippingAmount' => $order->getShippingAmount(),
+            'incrementId' => $order->increment_id,
+            'orderCreatedAtLong' => $order->getCreatedAtFormated('long'),
+            'orderIsNotVirtual' => $order->getIsNotVirtual(),
+            'billingAddress' => $order->getBillingAddress()->getData(),
+            'billingAddressHtml' => $order->getBillingAddress()->format('html'),
+            'shippingAddress' => $order->getShippingAddress()->getData(),
+            'shippingAddressHtml' => $order->getShippingAddress()->format('html'),
+            'shippingDescription' => $order->getShippingDescription(),
+            'emailCustomerNote' => $order->getEmailCustomerNote(),
+            'statusLabel' => $order->getStatusLabel(),
+            'storeFrontendName' => $order->getStore()->getFrontendName(),
+            'storeUrl' => Mage::app()->getStore(Mage::getDesign()->getStore())->getUrl(''), // from Mage_Core_Model_Email_Template_Filter->storeDirective
+            'logoUrl' => $this->getLogoUrl($store),
+            'logoAlt' => $this->getLogoAlt($store),
+            'payment' => $payment->getData(),
+            'discountAmount' => $order->getDiscountAmount(),
+            'discountDescription' => $order->getDiscountDescription()
         );
+
+        ///////////////
+        // COPIED FROM MAGENTO CORE: Mage_Sales_Model_Order->sendNewOrderEmail()
+        $storeId = $order->getStore()->getId();
+        try {
+            // Retrieve specified view block from appropriate design package (depends on emulated store)
+            $paymentBlock = Mage::helper('payment')->getInfoBlock($payment)
+                ->setIsSecureMode(true);
+            $paymentBlock->getMethod()->setStore($storeId);
+            $dataFields['paymentHtml'] = $paymentBlock->toHtml();
+        } catch (Exception $exception) {
+            Mage::log("Iterable Warning: unable to generate paymentHtml ({$exception->getMessage()})");
+        }
+        //////////// end payment_html
+
+        $dataFields['orderItemsHtml'] = $this->generateOrderItemsHtml($order);
+
         $customerDataFields = array(
             'firstName' => $order->getCustomerFirstname(),
             'lastName' => $order->getCustomerLastname()
@@ -240,6 +342,9 @@ class Iterable_TrackOrderPlaced_Model_Observer
         $email = $customer->getEmail();
 
         $dataFields = $customer->getData();
+        unset($dataFields["is_subscribed"]); // type changes between int (0 and 1) and boolean
+        $dataFields['firstName'] = $customer->getFirstname();
+        $dataFields['lastName'] = $customer->getLastname();
 
         // set shipping address
         $defaultShipping = $customer->getDefaultShippingAddress();
@@ -256,6 +361,13 @@ class Iterable_TrackOrderPlaced_Model_Observer
         }
         $helper = Mage::helper('trackorderplaced');
         $helper->updateUser($email, $dataFields);
+
+        // new accounts fire two saves. updating the user profile a 2nd time should be fine, but don't subscribe them to new accounts twice
+        if (Mage::registry('iterable_customer_save_after_observer_executed'.$email)) {
+            return;
+        }
+        Mage::register('iterable_customer_save_after_observer_executed'.$email, true);
+
         // if they're just creating their account, add them to a new users list
         if (!$customer->getOrigData()) {
             $listId = $helper->getAccountEmailListId();
@@ -315,7 +427,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
             'item' => $cartItem
         );
         $helper = Mage::helper('trackorderplaced');
-        $helper->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_ADD_TO_CART, $email, $dataFields);
+        $helper->track(Iterable_TrackOrderPlaced_Model_Trackingeventtypes::EVENT_TYPE_ADD_TO_CART, $email, $dataFields);
     }
     */
 
@@ -337,16 +449,159 @@ class Iterable_TrackOrderPlaced_Model_Observer
         }
         $email = $subscriber->getSubscriberEmail();
         $dataFields = $subscriber->getData();
+        unset($dataFields["is_subscribed"]); // type changes between int (0 and 1) and boolean
         switch ($subscriber->getStatus()) {
             case Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED:
                 $helper->subscribeEmailToList($email, $listId, $dataFields, True);
-                break; 
+                break;
             case Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED:
                 $helper->unsubscribeEmailFromList($email, $listId);
                 break;
-            default:                
+            default:
                 break;
         }
+    }
+
+    public function shipmentSaveAfter($observer)
+    {
+        $shipment = $observer->getEvent()->getShipment();
+        $order = $shipment->getOrder();
+
+        $trackingData = array();
+        $tracks = $shipment->getAllTracks();
+        foreach ($tracks as $track) {
+            $trackingData[] = $track->getData();
+        }
+
+        $comments = array();
+        $commentsCollection = $shipment->getCommentsCollection();
+        foreach ($commentsCollection as $comment) {
+            $comments[] = $comment->getData();
+        }
+
+        $items = array();
+        foreach ($shipment->getAllItems() as $item) {
+            $items[] = $item->getData();
+        }
+
+        $shipmentData = array(
+            "tracking" => $trackingData,
+            "comments" => $comments,
+            "billingAddress" => $shipment->getBillingAddress()->getData(),
+            "shippingAddress" => $shipment->getShippingAddress()->getData(),
+            "shippingDescription" => $order->getShippingDescription(),
+            "items" => $items,
+            "incrementId" => $order->increment_id
+        );
+
+        $email = $shipment->getOrder()->getCustomerEmail();
+
+        $helper = Mage::helper('trackorderplaced');
+        $helper->trackShipment($email, $shipmentData);
+    }
+
+    public function reviewSaveAfter($observer)
+    {
+        if (!Mage::helper('customer')->isLoggedIn()) {
+            return;
+        }
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+
+        $review = $observer->getObject();
+
+        $helper = Mage::helper('trackorderplaced');
+        $helper->trackReview($customer->getEmail(), $review->getData());
+    }
+
+    public function wishlistAddProduct($observer)
+    {
+        $wishlist = $observer->getWishlist();
+        $itemCollection = $wishlist->getItemCollection();
+        $itemCollection->setOrder('added_at','desc');
+
+        $items = array();
+        foreach ($itemCollection->getData() as $item) {
+            $product = Mage::getModel('catalog/product')->load($item['product_id']);
+            $item['product'] = $this->toIterableItem($product);
+            $items[] = $item;
+        }
+
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+
+        $helper = Mage::helper('trackorderplaced');
+        $helper->trackWishlist($customer->getEmail(), $items);
+    }
+
+    public function productView($observer)
+    {
+        $iterableLastViewedItems = "iterableLastViewedItems";
+
+        // make sure they're actually viewing a product
+        $action = $observer->getAction();
+        if (!$action) {
+            return;
+        }
+
+        $request = $action->getRequest();
+        if (!$request) {
+            return;
+        }
+
+        if (!in_array($action->getFullActionName(), array('catalog_product_view'))) {
+            return;
+        }
+
+        $product = Mage::registry('current_product');
+        if (!$product) {
+            return;
+        }
+
+        // get the product they're viewing
+        $item = $this->toIterableItem($product);
+        $date = Mage::getModel('core/date');
+        $gmtDate = $date->gmtDate('Y-m-d H:i:s');
+        $item['createdAt'] = $gmtDate;
+
+        // get saved history
+        $cookie = Mage::getModel('core/cookie');
+        $items = $cookie->get($iterableLastViewedItems);
+        if ($items) {
+            $items = json_decode($items, true);
+        } else {
+            $items = array();
+        }
+
+        array_unshift($items, $item); // prepend the item just viewed
+
+        $items = array_slice($items, 0, 5); // make sure at most 5 items - they're big and there's a cookie size limit
+
+        $epochSeconds = $date->gmtTimestamp();
+        $epochSecondsDayAgo = $epochSeconds - (60 * 60 * 24);
+        foreach ($items as $index => $item) {
+            $createdAt = $item['createdAt'];
+            $createdAtTimestamp = strtotime($createdAt);
+            if ($createdAtTimestamp < $epochSecondsDayAgo) {
+                unset($items[$index]);
+            }
+        }
+
+        $cookie->set(
+            $iterableLastViewedItems,
+            json_encode($items),
+            3600 * 24, // period
+            "/", // path
+            null, // domain
+            null, // secure
+            true); // httponly
+
+        if (!Mage::helper('customer')->isLoggedIn()) {
+            return;
+        }
+        $customer = Mage::getSingleton('customer/session')->getCustomer();
+        $helper = Mage::helper('trackorderplaced');
+        $helper->updateUser($customer->getEmail(), array(
+            'lastViewedItems' => $items
+        ));
     }
 
 }
