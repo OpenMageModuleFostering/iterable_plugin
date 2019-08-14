@@ -176,6 +176,33 @@
                     </iterable_trackshipmentsaved>
                 </observers>
             </sales_order_shipment_save_after>
+            <wishlist_add_product>
+                <observers>
+                    <iterable_wishlistadd>
+                        <type>singleton</type>
+                        <class>iterable_trackorderplaced/observer</class>
+                        <method>wishlistAddProduct</method>
+                    </iterable_wishlistadd>
+                </observers>
+            </wishlist_add_product>
+            <review_save_after>
+                <observers>
+                    <iterable_reviewsaveafter>
+                        <type>singleton</type>
+                        <class>iterable_trackorderplaced/observer</class>
+                        <method>reviewSaveAfter</method>
+                    </iterable_reviewsaveafter>
+                </observers>
+            </review_save_after>
+            <controller_action_layout_generate_blocks_after>
+                <observers>
+                    <iterable_product_view>
+                        <type>singleton</type>
+                        <class>iterable_trackorderplaced/observer</class>
+                        <method>productView</method>
+                    </iterable_product_view>
+                </observers>
+            </controller_action_layout_generate_blocks_after>
         </events>
     </global>
 
@@ -187,7 +214,7 @@
         </api_options>
         <advanced_options>
             <tracking_options>
-                <enabled_events>order,user,cartUpdated,newsletterSubscribe,newsletterUnsubscribe,triggerEmail,shipment</enabled_events>
+                <enabled_events>order,user,cartUpdated,newsletterSubscribe,newsletterUnsubscribe,triggerEmail,shipment,review,wishlistAddProduct</enabled_events>
             </tracking_options>
         </advanced_options>
     </default>

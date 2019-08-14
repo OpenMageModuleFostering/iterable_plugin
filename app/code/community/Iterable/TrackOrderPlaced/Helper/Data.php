@@ -130,14 +130,15 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         }
     }
 
-    public function updateUser($email, $dataFields=array()) {
+    public function updateUser($email, $dataFields=array(), $eventNameHint=null) {
         $endpoint = '/api/users/update';
         $params = array(
             'email' => $email
         );
         $this->setCurrentIp($dataFields);
         $params['dataFields'] = $dataFields;
-        return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER, $endpoint, $params);
+        $eventName = isset($eventNameHint) ? $eventNameHint : Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER;
+        return $this->callIterableApi($eventName, $endpoint, $params);
     }
     
     public function subscribeEmailToList($email, $listId, $dataFields=array(), $resubscribe=False) {
@@ -235,5 +236,17 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
 
     public function trackShipment($email, $shipment) {
         return $this->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_SHIPMENT, $email, $shipment);
+    }
+
+    public function trackReview($email, $review)
+    {
+        return $this->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_REVIEW, $email, $review);
+    }
+
+    public function trackWishlist($email, $wishlist)
+    {
+        return $this->updateUser($email, array(
+            'wishlist' => $wishlist
+        ), Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_WISHLIST_ADD_PRODUCT);
     }
 }
