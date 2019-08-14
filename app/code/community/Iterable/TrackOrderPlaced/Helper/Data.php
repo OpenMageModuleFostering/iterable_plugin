@@ -67,14 +67,23 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         }
     }
 
-    public function updateUser($email, $dataFields) {
+    public function getIp() {
+        return Mage::helper('core/http')->getRemoteAddr(false);
+    }
+
+    public function setCurrentIp(&$dataFields) {
+        if (!array_key_exists('ip', $dataFields)) {
+            $dataFields['ip'] = $this->getIp();
+        }
+    }
+
+    public function updateUser($email, $dataFields=array()) {
         $endpoint = '/api/users/update';
         $params = array(
             'email' => $email
         );
-        if (!empty($dataFields)) {
-            $params['dataFields'] = $dataFields;
-        }
+        $this->setCurrentIp($dataFields);
+        $params['dataFields'] = $dataFields;
         $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_USER, $endpoint, $params);
     }
     
@@ -137,7 +146,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_CART_UPDATED, $endpoint, $params);
     }
 
-    public function trackPurchase($email, $items, $total, $campaignId=NULL, $dataFields=array(), $customerDataFields=array()) {
+    public function trackPurchase($email, $items, $total, $campaignId=NULL, $templateId=NULL, $dataFields=array(), $customerDataFields=array()) {
         $endpoint = '/api/commerce/trackPurchase';
         $params = array(
             'user' => array(
@@ -154,6 +163,9 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         }
         if ($campaignId != NULL) {
             $params['campaignId'] = $campaignId;
+        }
+        if ($templateId != NULL) {
+            $params['templateId'] = $templateId;
         }
         $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_ORDER, $endpoint, $params);
     }

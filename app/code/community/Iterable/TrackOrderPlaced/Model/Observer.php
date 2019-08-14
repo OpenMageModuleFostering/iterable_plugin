@@ -207,8 +207,10 @@ class Iterable_TrackOrderPlaced_Model_Observer
 
         $cookieModel = Mage::getModel('core/cookie');
         // $iterableUid = $cookieModel->get('iterable_uid');
-        $campaignId = $cookieModel->get('iterable_cid');
+        $campaignId = $cookieModel->get('iterableEmailCampaignId');
         $campaignId = empty($campaignId) ? NULL: intval($campaignId);
+        $templateId = $cookieModel->get('iterableTemplateId');
+        $templateId = empty($templateId) ? NULL: intval($templateId);
 
         $subtotal = $order->getSubtotal();
         $dataFields = array(
@@ -222,7 +224,7 @@ class Iterable_TrackOrderPlaced_Model_Observer
             'lastName' => $order->getCustomerLastname()
         );
         $helper = Mage::helper('trackorderplaced');
-        $helper->trackPurchase($email, $items, $subtotal, $campaignId, $dataFields, $customerDataFields);
+        $helper->trackPurchase($email, $items, $subtotal, $campaignId, $templateId, $dataFields, $customerDataFields);
 
         // don't need to clear cart, server does it automatically
     }
