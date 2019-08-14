@@ -167,6 +167,15 @@
                     </iterable_tracknewslettersubscribe>
                 </observers>
             </newsletter_subscriber_save_after>
+            <sales_order_shipment_save_after>
+                <observers>
+                    <iterable_trackshipmentsaved>
+                        <class>iterable_trackorderplaced/observer</class>
+                        <method>shipmentSaveAfter</method>
+                        <type>singleton</type>
+                    </iterable_trackshipmentsaved>
+                </observers>
+            </sales_order_shipment_save_after>
         </events>
     </global>
 
@@ -178,7 +187,7 @@
         </api_options>
         <advanced_options>
             <tracking_options>
-                <enabled_events>order,user,cartUpdated,newsletterSubscribe,newsletterUnsubscribe,triggerEmail</enabled_events>
+                <enabled_events>order,user,cartUpdated,newsletterSubscribe,newsletterUnsubscribe,triggerEmail,shipment</enabled_events>
             </tracking_options>
         </advanced_options>
     </default>

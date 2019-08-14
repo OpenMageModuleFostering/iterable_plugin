@@ -447,4 +447,39 @@ class Iterable_TrackOrderPlaced_Model_Observer
         }
     }
 
+    public function shipmentSaveAfter($observer)
+    {
+        $shipment = $observer->getEvent()->getShipment();
+
+        $trackingData = array();
+        $tracks = $shipment->getAllTracks();
+        foreach ($tracks as $track) {
+            $trackingData[] = $track->getData();
+        }
+
+        $comments = array();
+        $commentsCollection = $shipment->getCommentsCollection();
+        foreach ($commentsCollection as $comment) {
+            $comments[] = $comment->getData();
+        }
+
+        $items = array();
+        foreach ($shipment->getAllItems() as $item) {
+            $items[] = $item->getData();
+        }
+
+        $shipmentData = array(
+            "tracking" => $trackingData,
+            "comments" => $comments,
+            "billingAddress" => $shipment->getBillingAddress()->getData(),
+            "shippingAddress" => $shipment->getShippingAddress()->getData(),
+            "shippingDescription" => $shipment->getOrder()->getShippingDescription(),
+            "items" => $items
+        );
+
+        $email = $shipment->getOrder()->getCustomerEmail();
+
+        $helper = Mage::helper('trackorderplaced');
+        $helper->trackShipment($email, $shipmentData);
+    }
 }

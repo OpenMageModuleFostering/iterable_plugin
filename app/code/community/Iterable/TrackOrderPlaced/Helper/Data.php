@@ -89,11 +89,11 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
         if (!in_array($event, $eventsToTrack)) {
             Mage::log("Iterable: tracking disabled for event " . $event);
             // TODO - maybe run this before gathering data about the cart
-            return;
+            return null;
         }
         $apiKey = $this->getIterableApiToken();
         if ($apiKey == NULL) {
-            return;
+            return null;
         }
         $url = "https://api.iterable.com/{$endpoint}?api_key={$apiKey}";
 //        $url = "http://localhost:9000{$endpoint}?api_key={$apiKey}";
@@ -101,7 +101,7 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             $client = new Zend_Http_Client($url);
         } catch(Exception $e) {
             Mage::log("Warning: unable to create http client with url {$url} ({$e->getMessage()})");
-            return;
+            return null;
         }
         $client->setMethod(Zend_Http_Client::POST);
         // $client->setHeaders('Content-Type', 'application/json'); 
@@ -231,5 +231,9 @@ class Iterable_TrackOrderPlaced_Helper_Data extends Mage_Core_Helper_Abstract {
             $params['dataFields'] = $dataFields;
         }
         return $this->callIterableApi(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_TRIGGER_EMAIL, $endpoint, $params);
+    }
+
+    public function trackShipment($email, $shipment) {
+        return $this->track(Iterable_TrackOrderPlaced_Model_TrackingEventTypes::EVENT_TYPE_SHIPMENT, $email, $shipment);
     }
 }
