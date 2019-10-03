@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Iterable_Plugin",
+    "name": "OpenMageModuleFostering\/Iterable_Plugin",
     "type": "magento-module",
     "license": "Open-Software-License-(OSL)-",
     "homepage": "",
     "description": "The official extension for easily integrating the Iterable all-in-one email optimization solution with your Magento store. ",
     "authors": [
-    {
-        "name": "Ilya Brin",
-        "email": "ilya@iterable.com"
-    }
-],
+        {
+            "name": "Ilya Brin",
+            "email": "ilya@iterable.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
